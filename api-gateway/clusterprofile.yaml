@@ -1,0 +1,30 @@
+apiVersion: config.projectsveltos.io/v1alpha1
+kind: ClusterProfile
+metadata:
+  name: gateway-configuration
+spec:
+  clusterSelector: env=production
+  syncMode: Continuous
+  helmCharts:
+  - repositoryURL:    https://kyverno.github.io/kyverno/
+    repositoryName:   kyverno
+    chartName:        kyverno/kyverno
+    chartVersion:     v2.6.0
+    releaseName:      kyverno-latest
+    releaseNamespace: kyverno
+    helmChartAction:  Install
+    values:
+      replicaCount: 1
+  policyRefs:
+  - name: contour-gateway-provisioner
+    namespace: default
+    kind: ConfigMap
+  - name: gatewayclass
+    namespace: default
+    kind: ConfigMap
+  - name: gateway
+    namespace: default
+    kind: ConfigMap
+  - name: kyverno-disallow-gateway # contains Kyverno ClusterPolicy
+    namespace: default
+    kind: ConfigMap

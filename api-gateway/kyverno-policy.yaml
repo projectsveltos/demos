@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kyverno-disallow-gateway
+  namespace: default
+data:
+  kyverno.yaml: |
+    apiVersion: kyverno.io/v1
+    kind: ClusterPolicy
+    metadata:
+      name: no-gateway
+      annotations:
+        policies.kyverno.io/title: Block Create,Update,Delete of Gateway instances
+        policies.kyverno.io/severity: medium
+        policies.kyverno.io/subject: Gateway
+        policies.kyverno.io/description: >-
+          Management cluster admin controls Gateway's configurations.
+    spec:
+      validationFailureAction: enforce
+      background: false
+      rules:
+      - name: block-gateway-updates
+        match:
+          any:
+          - resources:
+              kinds:
+              - Gateway
+        exclude:
+          any:
+          - clusterRoles:
+            - cluster-admin
+        validate:
+          message: "Gateway's configurations is managed by management cluster admin."
+          deny:
+            conditions:
+              - key: "{{request.operation}}"
+                operator: In
+                value:
+                - CREATE
+                - DELETE
+                - UPDATE
