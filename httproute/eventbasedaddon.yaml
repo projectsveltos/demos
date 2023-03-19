@@ -1,0 +1,46 @@
+apiVersion: lib.projectsveltos.io/v1alpha1
+kind: EventBasedAddOn
+metadata:
+ name: service-network-policy
+spec:
+ clusterSelector: env=fv
+ eventSourceName: eng-http-service
+ oneForEvent: true
+ policyRefs:
+ - name: http-routes
+   namespace: default
+   kind: ConfigMap
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: http-routes
+  namespace: default
+data:
+  http-route.yaml: |
+    kind: HTTPRoute
+    apiVersion: gateway.networking.k8s.io/v1beta1
+    metadata:
+      name: {{ .Resource.metadata.name }}
+      namespace: {{ .Resource.metadata.namespace }}
+      labels:
+        {{ range $key, $value := .Resource.spec.selector }}
+        {{ $key }}: {{ $value }}
+        {{ end }}
+    spec:
+      parentRefs:
+      - group: gateway.networking.k8s.io
+        kind: Gateway
+        name: contour
+        namespace: projectcontour
+      hostnames:
+      - "local.projectcontour.io"
+      rules:
+      - matches:
+        - path:
+            type: PathPrefix
+            value: /{{ .Resource.metadata.name }}
+        backendRefs:
+        - kind: Service
+          name: {{ .Resource.metadata.name }}
+          port: {{ (index .Resource.spec.ports 0).port }}
