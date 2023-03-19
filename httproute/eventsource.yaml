@@ -1,0 +1,23 @@
+apiVersion: lib.projectsveltos.io/v1alpha1
+kind: EventSource
+metadata:
+ name: eng-http-service
+spec:
+ collectResources: true
+ group: ""
+ version: "v1"
+ kind: "Service"
+ namespace: eng
+ script: |
+   function evaluate()
+     hs = {}
+     hs.matching = false
+     if obj.spec.ports ~= nil then
+       for _,p in pairs(obj.spec.ports) do
+         if p.port == 80 then
+           hs.matching = true
+         end
+       end
+     end
+     return hs
+   end

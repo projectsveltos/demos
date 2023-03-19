@@ -1,0 +1,16 @@
+apiVersion: config.projectsveltos.io/v1alpha1
+kind: ClusterProfile
+metadata:
+ name: gateway-configuration
+spec:
+ clusterSelector: env=fv
+ policyRefs:
+ - name: contour-gateway-provisioner-secret
+   namespace: default
+   kind: Secret
+ - name: gateway
+   namespace: default
+   kind: ConfigMap
+ - name: gatewayclass
+   namespace: default
+   kind: ConfigMap
