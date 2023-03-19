@@ -234,21 +234,7 @@ spec:
 ```
 
 
-[^1]: This is same file available [here](https://projectcontour.io/quickstart/contour-gateway-provisioner.yaml).  There is currently an issues with Sveltos processing sections containing just comment and empty spaces. That is why we copied it locally, to simply remove this section.
-
-```yaml
-# This file is generated from the individual YAML files by generate-provisioner-deployment.sh. Do not
-# edit this file directly but instead edit the source files and re-render.
-#
-# Generated from:
-#       examples/contour/01-crds.yaml
-#       examples/gateway/00-crds.yaml
-#       examples/gateway/00-namespace.yaml
-#       examples/gateway/01-admission_webhook.yaml
-#       examples/gateway/02-certificate_config.yaml
-#       examples/gateway-provisioner/00-common.yaml
-#       examples/gateway-provisioner/01-roles.yaml
-#       examples/gateway-provisioner/02-rolebindings.yaml
+[^1]: This is same file available [here](https://projectcontour.io/quickstart/contour-gateway-provisioner.yaml).  There is currently an issues with Sveltos processing sections containing just comment and empty spaces. That is why we copied it locally, to simply remove the very first section which contains only comments and empty lines.
 #       examples/gateway-provisioner/03-gateway-provisioner.yaml
 
 ---
