@@ -66,8 +66,6 @@ metadata:
  name: gateway-configuration
 spec:
  clusterSelector: env=fv
- eventSourceName: eng-http-service
- oneForEvent: true
  policyRefs:
  - name: contour-gateway-provisioner-secret
    namespace: default
