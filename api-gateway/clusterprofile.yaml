@@ -13,7 +13,7 @@ spec:
     releaseName:      kyverno-latest
     releaseNamespace: kyverno
     helmChartAction:  Install
-    values:
+    values: |
       replicaCount: 1
   policyRefs:
   - name: contour-gateway-provisioner
