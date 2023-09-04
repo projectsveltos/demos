@@ -113,3 +113,11 @@ kubectl exec -it -n projectsveltos sveltosctl-0 -- ./sveltosctl snapshot diff --
    validationFailureAction: audit
    background: true
 ```
+
+## Create management cluster
+Sveltos [addon-controller](https://github.com/projectsveltos/addon-controller) has a Makefile target __make quickstart__ that creates:
+
+1. management cluster with Sveltos and ClusterAPI
+2. managed cluster using docker as infrastructure provider.
+
+To deploy Hetnzer as yet another infrastructure provider, follow instructions present [here](https://github.com/syself/cluster-api-provider-hetzner/blob/main/docs/topics/preparation.md).
