@@ -1,0 +1,25 @@
+apiVersion: config.projectsveltos.io/v1alpha1
+kind: ClusterProfile
+metadata:
+  name: kyverno 
+spec:
+  clusterSelector: env=production
+  syncMode: Continuous
+  helmCharts:
+  - repositoryURL:    https://kyverno.github.io/kyverno/
+    repositoryName:   kyverno
+    chartName:        kyverno/kyverno
+    chartVersion:     v3.0.1
+    releaseName:      kyverno-latest
+    releaseNamespace: kyverno
+    helmChartAction:  Install
+    values: |
+      admissionController:
+        replicas: 1
+  policyRefs:
+  - name: kyverno-latest
+    namespace: default
+    kind: ConfigMap
+  - name: kyverno-empty-ingress
+    namespace: default
+    kind: ConfigMap
