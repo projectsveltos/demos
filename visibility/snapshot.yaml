@@ -1,0 +1,7 @@
+apiVersion: utils.projectsveltos.io/v1alpha1
+kind: Snapshot
+metadata:
+  name: hourly
+spec:
+  schedule: "00 * * * *"
+  storage: /collection
