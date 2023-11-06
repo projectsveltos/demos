@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: crashing-pod
+spec:
+  containers:
+  - name: crashing-container
+    image: busybox
+    command: ["/bin/sh", "-c", "while true; do echo 'Hello, world!'; sleep 1; done"]
+    livenessProbe:
+      initialDelaySeconds: 5
+      periodSeconds: 2
+      httpGet:
+        port: 80
+        path: /healthz
