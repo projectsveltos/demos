@@ -1,0 +1,13 @@
+apiVersion: lib.projectsveltos.io/v1alpha1
+kind: EventBasedAddOn
+metadata:
+ name: hc
+spec:
+ sourceClusterSelector: env=fv
+ eventSourceName: crashing-pod
+ oneForEvent: true
+ stopMatchingBehavior: LeavePolicies
+ policyRefs:
+ - name: k8s-collector
+   namespace: default
+   kind: ConfigMap

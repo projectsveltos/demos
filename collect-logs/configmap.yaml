@@ -1,0 +1,116 @@
+apiVersion: v1
+data:
+  collector.yaml: |
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: civo-volume-demo
+      namespace: default
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+    ---
+    apiVersion: v1
+    data:
+      configmap.yaml: |-
+        resources:
+        - group: ""
+          version: v1
+          kind: Pod
+          namespace: {{ .Resource.metadata.namespace }}
+        - group: apps
+          version: v1
+          kind: Deployment
+          namespace: {{ .Resource.metadata.namespace }}
+        logs:
+        - namespace: {{ .Resource.metadata.namespace }}
+          sinceSeconds: 600
+    kind: ConfigMap
+    metadata:
+      name: k8s-collector-{{ .Resource.metadata.namespace }}-{{ .Resource.metadata.name }}
+      namespace: default
+    ---
+    kind: ClusterRole
+    apiVersion: rbac.authorization.k8s.io/v1
+    metadata:
+      name: k8s-collector
+    rules:
+      - apiGroups:
+          - "*"
+        resources:
+          - "*"
+        verbs:
+          - get
+          - list
+      - apiGroups:
+          - "batch/v1"
+        verbs:
+          - "get"
+          - "list"
+          - "watch"
+        resources:
+          - "pods/logs"
+    ---
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      name: k8s-collector
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: k8s-collector
+    subjects:
+    - kind: ServiceAccount
+      name: k8s-collector
+      namespace: default
+    ---
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      name: k8s-collector
+      namespace: default
+    ---
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      name: k8s-collector-{{ .Resource.metadata.name }}
+      namespace: default
+    spec:
+      template:
+        spec:
+          volumes:
+          - name: civo-vol
+            persistentVolumeClaim:
+              claimName: civo-volume-demo
+          restartPolicy: Never
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            fsGroup: 1000
+          serviceAccountName: k8s-collector
+          containers:
+          - name: k8s-collector
+            image: projectsveltos/k8s-collector-amd64:main
+            imagePullPolicy: IfNotPresent
+            env:
+              - name: COLLECTOR_NAMESPACE
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.namespace
+            command:
+              - /k8s-collector
+            volumeMounts:
+            - mountPath: "/collection"
+              name: civo-vol
+            args:
+              - --config-map=k8s-collector-{{ .Resource.metadata.namespace }}-{{ .Resource.metadata.name }}
+              - --dir=/collection
+kind: ConfigMap
+metadata:
+  annotations:
+    projectsveltos.io/template: "true"
+  name: k8s-collector
+  namespace: default

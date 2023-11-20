@@ -1,0 +1,28 @@
+apiVersion: lib.projectsveltos.io/v1alpha1
+kind: EventSource
+metadata:
+ name: crashing-pod
+spec:
+ group: ""
+ version: "v1"
+ kind: "Pod"
+ collectResources: true
+ script: |
+  function evaluate()
+     hs = {}
+     hs.matching = false
+     hs.message = ""
+     if obj.status.containerStatuses then
+        local containerStatuses = obj.status.containerStatuses
+        for _, containerStatus in ipairs(containerStatuses) do
+          if containerStatus.state.waiting and containerStatus.state.waiting.reason == "CrashLoopBackOff" then
+            hs.matching = true
+            hs.message = obj.metadata.namespace .. "/" .. obj.metadata.name .. ":" .. containerStatus.state.waiting.message
+            if containerStatus.lastState.terminated and containerStatus.lastState.terminated.reason then
+              hs.message = hs.message .. "\nreason:" .. containerStatus.lastState.terminated.reason
+            end
+          end
+        end
+     end
+     return hs
+  end 
