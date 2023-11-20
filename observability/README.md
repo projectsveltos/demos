@@ -82,6 +82,10 @@ spec:
               hs.message = hs.message .. "\nreason:" .. containerStatus.lastState.terminated.reason
             end
           end
+        end
+     end
+     return hs
+   end 
 ```
 
 A __ClusterHealthCheck__ instance references a __HealthCheck__ and selects a subset of managed clusters where Projectsveltos will monitor for events. It also tells Projectsveltos what type of notifications to send.
