@@ -22,3 +22,7 @@ spec:
               hs.message = hs.message .. "\nreason:" .. containerStatus.lastState.terminated.reason
             end
           end
+        end
+     end
+     return hs
+   end 
