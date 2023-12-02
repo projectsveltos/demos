@@ -44,6 +44,8 @@ kubectl apply -f https://raw.githubusercontent.com/gianlucam76/claudie-sveltos-i
 This controller continuously monitors Claudie's secrets and automatically creates corresponding SveltosCluster objects.
 Conversely, when a secret is deleted, the controller ensures the corresponding SveltosCluster object is also removed.
 
+![Claudie and Sveltos in the management cluster](https://github.com/gianlucam76/claudie-sveltos-integration/blob/main/docs/claudie-sveltos.png)
+
 ## Provision a Kubernetes cluster on GCP
 
 Full instructions can be found on Claudie [website](https://docs.claudie.io/v0.6.3/input-manifest/providers/gcp/).
@@ -86,7 +88,7 @@ gcp-manifest       DONE
 hetzner-manifest   DONE
 ```
 
-# Verify SveltosClusters are created
+## Verify SveltosClusters are created
 
 At this point, two SveltosClusters have been automatically created
 
@@ -97,7 +99,7 @@ claudie     gcp-cluster       true    v1.24.0
 claudie     hetzner-cluster   true    v1.24.0
 ```
 
-# Deploy add-ons and applications with Sveltos
+## Deploy add-ons and applications with Sveltos
 
 Sveltos can be used to deploy [add-ons and applications](https://projectsveltos.github.io/sveltos/addons/addons/)
 
@@ -122,4 +124,6 @@ sveltosctl show addons
 | claudie/hetzner-cluster | helm chart    | nginx     | nginx-latest   | 0.14.0  | 2023-12-02 17:14:17 +0100 CET | nginx            |
 +-------------------------+---------------+-----------+----------------+---------+-------------------------------+------------------+
 ```
+
+![Add-ons deployment](https://github.com/projectsveltos/sveltos/blob/main/docs/assets/claudie-sveltos.gif)
 
