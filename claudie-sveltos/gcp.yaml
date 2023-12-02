@@ -1,0 +1,72 @@
+apiVersion: claudie.io/v1beta1
+kind: InputManifest
+metadata:
+  name: gcp-manifest 
+  labels:
+    app.kubernetes.io/part-of: claudie
+spec:
+  providers:
+    - name: gcp-1
+      providerType: gcp
+      secretRef:
+        name: gcp-secret-1
+        namespace: <YOUR NAMESPACE> 
+
+  nodePools:
+    dynamic:
+      - name: control-gcp
+        providerSpec:
+          # Name of the provider instance.
+          name: gcp-1
+          # Region of the nodepool.
+          region: europe-west1
+          # Zone of the nodepool.
+          zone: europe-west1-c
+        count: 1
+        # Machine type name.
+        serverType: e2-medium
+        # OS image name.
+        image: ubuntu-os-cloud/ubuntu-2204-jammy-v20221206
+
+      - name: compute-1-gcp
+        providerSpec:
+          # Name of the provider instance.
+          name: gcp-1
+          # Region of the nodepool.
+          region: europe-west3
+          # Zone of the nodepool.
+          zone: europe-west3-a
+        count: 2
+        # Machine type name.
+        serverType: e2-medium
+        # OS image name.
+        image: ubuntu-os-cloud/ubuntu-2204-jammy-v20221206
+        storageDiskSize: 50
+
+      - name: compute-2-gcp
+        providerSpec:
+          # Name of the provider instance.
+          name: gcp-1
+          # Region of the nodepool.
+          region: europe-west2
+          # Zone of the nodepool.
+          zone: europe-west2-a
+        count: 2
+        # Machine type name.
+        serverType: e2-medium
+        # OS image name.
+        image: ubuntu-os-cloud/ubuntu-2204-jammy-v20221206
+        storageDiskSize: 50
+
+  kubernetes:
+    clusters:
+      - name: gcp-cluster
+        version: v1.24.0
+        network: 192.168.2.0/24
+        pools:
+          control:
+            - control-gcp
+          compute:
+            - compute-1-gcp
+            - compute-2-gcp
+
