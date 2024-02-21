@@ -1,0 +1,15 @@
+apiVersion: config.projectsveltos.io/v1alpha1
+kind: ClusterProfile
+metadata:
+  name: deploy-gatekeeper-3-10
+spec:
+  clusterSelector: gatekeeper=v3-10
+  syncMode: Continuous
+  helmCharts:
+  - repositoryURL: https://open-policy-agent.github.io/gatekeeper/charts
+    repositoryName: gatekeeper
+    chartName: gatekeeper/gatekeeper
+    chartVersion:  3.10.0
+    releaseName: gatekeeper
+    releaseNamespace: gatekeeper
+    helmChartAction: Install
