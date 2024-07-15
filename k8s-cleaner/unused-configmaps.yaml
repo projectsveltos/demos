@@ -1,0 +1,56 @@
+apiVersion: v1
+data:
+  unused-configmaps.yaml: "---\napiVersion: apps.projectsveltos.io/v1alpha1\nkind:
+    Cleaner\nmetadata:\n  name: unused-configmaps\nspec:\n  notifications:\n  - name:
+    report\n    type: CleanerReport\n  schedule: \"0 * * * *\"\n  action: Scan\n  resourcePolicySet:\n
+    \   resourceSelectors:\n    - kind: Pod\n      group: \"\"\n      version: v1\n
+    \     namespace: k3s-home\n    - kind: ConfigMap\n      group: \"\"\n      version:
+    v1\n      namespace: k3s-home\n    aggregatedSelection: |\n      function getKey(namespace,
+    name)\n        return namespace .. \":\" .. name\n      end \n\n      function
+    configMapsUsedByPods(pods)\n        local podConfigMaps = {}\n\n        for _,
+    pod in ipairs(pods) do\n          if pod.spec.containers ~= nil then\n            for
+    _, container in ipairs(pod.spec.containers) do\n\n              if container.env
+    ~= nil then\n                for _, env in ipairs(container.env) do\n                  if
+    env.valueFrom ~= nil and env.valueFrom.configMapKeyRef ~= nil then\n                    key
+    = getKey(pod.metadata.namespace, env.valueFrom.configMapKeyRef.name)\n                    podConfigMaps[key]
+    = true\n                  end\n                end\n              end\n\n              if
+    container.envFrom ~= nil then\n                for _, envFrom in ipairs(container.envFrom)
+    do\n                  if envFrom.configMapRef ~= nil then\n                    key
+    = getKey(pod.metadata.namespace, envFrom.configMapRef.name)\n                    podConfigMaps[key]
+    = true\n                  end\n                end\n              end  \n            end\n
+    \         end\n\n          if pod.spec.initContainers ~= nil then\n            for
+    _, initContainer in ipairs(pod.spec.initContainers) do\n\n              if initContainer.env
+    ~= nil then\n                for _, env in ipairs(initContainer.env) do\n                  if
+    env.valueFrom ~= nil and env.valueFrom.configMapKeyRef ~= nil then\n                    key
+    = getKey(pod.metadata.namespace, env.valueFrom.configMapKeyRef.name)\n                    podConfigMaps[key]
+    = true\n                  end\n                end\n              end\n\n              if
+    initContainer.envFrom ~= nil then\n                for _, envFrom in ipairs(initContainer.envFrom)
+    do\n                  if envFrom.configMapRef ~= nil then\n                    key
+    = getKey(pod.metadata.namespace,envFrom.configMapRef.name)\n                    podConfigMaps[key]
+    = true\n                  end\n                end\n              end  \n\n            end\n
+    \         end    \n\n          if pod.spec.volumes ~= nil then  \n            for
+    _, volume in ipairs(pod.spec.volumes) do\n              if volume.configMap ~=
+    nil then\n                key = getKey(pod.metadata.namespace,volume.configMap.name)\n
+    \               podConfigMaps[key] = true\n              end\n\n              if
+    volume.projected ~= nil and volume.projected.sources ~= nil then\n                for
+    _, projectedResource in ipairs(volume.projected.sources) do\n                  if
+    projectedResource.configMap ~= nil then\n                    key = getKey(pod.metadata.namespace,projectedResource.configMap.name)\n
+    \                   podConfigMaps[key] = true\n                  end\n                end\n
+    \             end\n            end\n          end\n        end  \n\n        return
+    podConfigMaps\n      end\n\n      function evaluate()\n        local hs = {}\n
+    \       hs.message = \"\"\n\n        local pods = {}\n        local configMaps
+    = {}\n        local unusedConfigMaps = {}\n\n        -- Separate configMaps and
+    podsfrom the resources\n        for _, resource in ipairs(resources) do\n            local
+    kind = resource.kind\n            if kind == \"ConfigMap\" then\n              table.insert(configMaps,
+    resource)\n            elseif kind == \"Pod\" then\n              table.insert(pods,
+    resource)\n            end\n        end\n\n        podConfigMaps = configMapsUsedByPods(pods)\n\n
+    \       for _, configMap in ipairs(configMaps) do\n          key = getKey(configMap.metadata.namespace,configMap.metadata.name)\n
+    \         if not podConfigMaps[key] then\n            table.insert(unusedConfigMaps,
+    {resource = configMap})\n          end\n        end\n\n        if #unusedConfigMaps
+    > 0 then\n          hs.resources = unusedConfigMaps\n        end\n        return
+    hs\n      end\n"
+kind: ConfigMap
+metadata:
+  name: unused-configmaps
+  namespace: default
+ 
