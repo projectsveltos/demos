@@ -1,0 +1,60 @@
+apiVersion: lib.projectsveltos.io/v1beta1
+kind: HealthCheck
+metadata:
+  name: cleaner-reports
+spec:
+  collectResources: true
+  resourceSelectors:
+  - group: apps.projectsveltos.io
+    version: v1alpha1
+    kind: Report
+  evaluateHealth: |
+    function getMessage(resourceInfo)
+      message = "Affected Resources:"
+      for _,info in ipairs(resourceInfo) do
+        message = message .. "" .. info.resource.namespace .. "/" .. info.resource.name
+        message = message .. "\n"
+      end
+
+      return message
+    end
+
+ 
+    function evaluate()
+      local statuses = {}
+
+      status = "Progressing"
+      message = ""
+
+      for _,resource in ipairs(resources) do
+        if #resource.spec.resourceInfo > 0 then
+          currentMessage = getMessage(resource.spec.resourceInfo) 
+          table.insert(statuses, {resource=resource, status = "Degraded", message=currentMessage})
+        end
+      end
+
+      local hs = {}
+      if #statuses > 0 then
+        hs.resources = statuses 
+      end
+      return hs
+    end
+---
+apiVersion: lib.projectsveltos.io/v1beta1
+kind: ClusterHealthCheck
+metadata:
+  name: cleaner-reports
+spec:
+  clusterSelector:
+    matchLabels:
+      env: fv
+  livenessChecks:
+  - name: cleaner-report
+    type: HealthCheck
+    livenessSourceRef:
+      kind: HealthCheck
+      apiVersion: lib.projectsveltos.io/v1beta1
+      name: cleaner-reports
+  notifications:
+  - name: event
+    type: KubernetesEvent
