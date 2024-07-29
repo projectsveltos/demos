@@ -1,0 +1,25 @@
+apiVersion: config.projectsveltos.io/v1beta1
+kind: ClusterProfile
+metadata:
+  name: deploy-production-postgres
+spec:
+  clusterSelector:
+    matchLabels:      
+      type: managed-services
+  policyRefs:
+  - name: production-postgres
+    namespace: default
+    kind: ConfigMap
+---
+apiVersion: config.projectsveltos.io/v1beta1
+kind: ClusterProfile
+metadata:
+  name: deploy-pre-production-postgres
+spec:
+  clusterSelector:
+    matchLabels:
+      type: managed-services
+  policyRefs:
+  - name: pre-production-postgres
+    namespace: default
+    kind: ConfigMap
