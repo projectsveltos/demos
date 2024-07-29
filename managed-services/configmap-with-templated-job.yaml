@@ -1,0 +1,36 @@
+apiVersion: v1
+data:
+  job-to-create-table.yaml: |
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      name: todo-table
+      namespace: todo
+    spec:
+      ttlSecondsAfterFinished: 1000
+      template:
+        spec:
+          containers:
+            - name: postgresql-client
+              image: postgres:12
+              imagePullPolicy: Always
+              env:
+                - name: PGPASSWORD
+                  value: {{ get (getResource "CredentialsSecret").data `postgres-password` |b64dec }}
+              command: ["psql"]
+              args:
+                [
+                  "--host={{ get (getResource `ServiceConfigMap`).data `external-ip` }}",
+                  "--port={{ get (getResource `ServiceConfigMap`).data `port` }}",
+                  "--username=admin",
+                  "--no-password",
+                  "--dbname=todo",
+                  "--command=create table Todo (id bigint not null,completed boolean not null,ordering integer,title varchar(255),url varchar(255),primary key (id));create sequence hibernate_sequence start with 1 increment by 1;",
+                ]
+          restartPolicy: Never
+kind: ConfigMap
+metadata:
+  annotations:
+    projectsveltos.io/template: ok
+  name: job-to-create-table
+  namespace: default

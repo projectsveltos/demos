@@ -1,0 +1,52 @@
+## Fetch postgres production service info (ip and port)
+## from the cluster where services are deployed. 
+## Create a ConfigMap in the management cluster in the production namespace
+## that contains that info
+apiVersion: lib.projectsveltos.io/v1beta1 
+kind: EventSource 
+metadata: 
+  name: collect-postgres-host-port
+spec: 
+  collectResources: true 
+  resourceSelectors: 
+  - group: "" 
+    version: "v1" 
+    kind: "Service" 
+    labelFilters: 
+    - key: app 
+      operation: Equal 
+      value: postgres 
+--- 
+apiVersion: lib.projectsveltos.io/v1beta1 
+kind: EventTrigger 
+metadata: 
+  name: postgres-host-port
+spec: 
+  sourceClusterSelector: 
+    matchLabels: 
+      type: managed-services 
+  eventSourceName: collect-postgres-host-port
+  oneForEvent: true 
+  policyRefs: 
+  - name: postgres-host-port
+    namespace: default 
+    kind: ConfigMap 
+    deploymentType: Local 
+--- 
+apiVersion: v1 
+kind: ConfigMap 
+metadata: 
+  name: postgres-host-port 
+  annotations: 
+    projectsveltos.io/template: ok 
+data: 
+  credentials: | 
+    apiVersion: v1 
+    kind: ConfigMap
+    metadata: 
+      name: postgres-host-port
+      namespace: {{ .Resource.metadata.namespace }}
+    data: 
+      external-ip: {{ (index .Resource.status.loadBalancer.ingress 0).ip }}
+      port: "{{ (index .Resource.spec.ports 0).targetPort }}"
+

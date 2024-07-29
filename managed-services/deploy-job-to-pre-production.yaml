@@ -1,0 +1,25 @@
+apiVersion: config.projectsveltos.io/v1beta1
+kind: ClusterProfile
+metadata:
+  name: deploy-job-to-production
+spec:
+  clusterSelector:
+    matchLabels:      
+      type: pre-production
+  templateResourceRefs:
+  - resource:
+      apiVersion: v1
+      kind: Secret
+      name: postgres-credentials
+      namespace: pre-production-services
+    identifier:  CredentialsSecret
+  - resource:
+      apiVersion: v1
+      kind: ConfigMap
+      name: postgres-host-port 
+      namespace: pre-production-services
+    identifier:  ServiceConfigMap
+  policyRefs:
+  - name: job-to-create-table
+    namespace: default
+    kind: ConfigMap
