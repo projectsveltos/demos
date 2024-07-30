@@ -67,8 +67,8 @@ The file [fetch-credentials](fetch-credentials.yaml) get the admin passwords fro
 The file [fetch-service-ip](fetch-service-ip.yaml) get the ip:Port from the LoadBalancer Services on the managed-services-clusters exposing Postgres production and pre-production.
 
 ```
-kubectl create configmap production-postgres --from-file=https://raw.githubusercontent.com/projectsveltos/demos/main/managed-services/fetch-credentials.yaml
-kubectl create configmap pre-production-postgres --from-file=https://raw.githubusercontent.com/projectsveltos/demos/main/managed-services/fetch-service-ip.yaml
+kubectl apply -f https://raw.githubusercontent.com/projectsveltos/demos/main/managed-services/fetch-credentials.yaml
+kubectl apply -f https://raw.githubusercontent.com/projectsveltos/demos/main/managed-services/fetch-service-ip.yaml
 ``` 
 
 Verify that information was successfully collected
