@@ -110,7 +110,7 @@ At this point we are ready to deploy a Job in teh managed `production` cluster t
 Let's create first a ConfigMap that contains a templatize Job.
 
 ```
-kubectl create configmap production-postgres --from-file=https://raw.githubusercontent.com/projectsveltos/demos/main/managed-services/configmap-with-templated-job.yaml
+kubectl apply -f https://raw.githubusercontent.com/projectsveltos/demos/main/managed-services/configmap-with-templated-job.yaml
 ```
 
 and then ask Sveltos to:
