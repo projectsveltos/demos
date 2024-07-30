@@ -92,21 +92,24 @@ and then ask Sveltos to:
 - deploy it to the production cluster
 
 ```
-kubectl create configmap production-postgres --from-file=https://raw.githubusercontent.com/projectsveltos/demos/main/managed-services/deploy-job-to-production.yaml
+kubectl apply -f https://raw.githubusercontent.com/projectsveltos/demos/main/managed-services/deploy-job-to-production.yaml
 ```
 
-With kubectl pointing to the production cluster
+With kubectl pointing to the production cluster we can verify the Job was created and successfully completed (a table was created in the Postgres on the clusters were services are deployed)
 
 ```
 KUBECONFIG=<production-kubeconfig> kubectl get jobs -A
 todo        todo-table                     1/1           3s         11s
 ```
 
-We can deploy same Job to pre-production cluster. This Jop will create a table to the pre-production Postgres running on the managed-services-cluster
+We can deploy same Job to pre-production cluster. 
 
 ```
-kubectl create configmap production-postgres --from-file=https://raw.githubusercontent.com/projectsveltos/demos/main/managed-services/deploy-job-to-pre-production.yaml
+kubectl apply -f https://raw.githubusercontent.com/projectsveltos/demos/main/managed-services/deploy-job-to-pre-production.yaml
+
 ```
+
+With kubectl pointing to the pre-production cluster we can verify the Job was created and successfully completed (a table was created in the Postgres on the clusters were services are deployed)
 
 ```
 KUBECONFIG=<pre-production-kubeconfig> kubectl get jobs -A
