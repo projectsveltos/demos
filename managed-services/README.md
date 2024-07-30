@@ -21,8 +21,10 @@ The file [pre-production-postgres.yaml](pre-production-postgres.yaml) contains K
 Create two ConfigMaps with the content of such files:
 
 ```
-kubectl create configmap production-postgres --from-file=https://raw.githubusercontent.com/projectsveltos/demos/main/managed-services/production-postgres.yaml 
-kubectl create configmap pre-production-postgres --from-file=https://raw.githubusercontent.com/projectsveltos/demos/main/managed-services/pre-production-postgres.yaml 
+wget https://raw.githubusercontent.com/projectsveltos/demos/main/managed-services/production-postgres.yaml 
+kubectl create configmap production-postgres --from-file=production-postgres.yaml
+wget https://raw.githubusercontent.com/projectsveltos/demos/main/managed-services/pre-production-postgres.yaml 
+kubectl create configmap pre-production-postgres --from-file=pre-production-postgres.yaml 
 ```
 
 The file [deploy-postgres-clusterprofile](deploy-postgres-clusterprofile.yaml) contains Sveltos ClusterProfile to deploy on the `managed-services/managed-service-cluster`:
