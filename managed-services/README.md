@@ -13,6 +13,31 @@ project-a          production                true    v1.29.2+k3s1   projectsvelt
 mgmt               mgmt                      true    v1.30.0        projectsveltos.io/k8s-version=v1.30.0,sveltos-agent=present
 ```
 
+Please note the labels:
+
+- type: managed-services for the cluster where services are deployed
+- type: pre-production for the cluster where applications will reach the pre-production Postgres instance
+- type: production for the cluster where applications will reach the production Postgres instance
+
+For this demo, Sveltos needs extra permissions
+
+```
+kubectl edit clusterroles  addon-controller-role-extra
+```
+
+and add following permissions
+
+```
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - namespaces 
+  - secrets
+  verbs:
+  - "*"
+```
+
 
 The file [production-postgres.yaml](production-postgres.yaml) contains Kubernetes resources to deploy Postgres (with password __my-production-password__) in the `production-services` namespace.
 
