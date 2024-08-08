@@ -1,0 +1,86 @@
+## Fetch nginx production service info (ip and port)
+## from the cluster where services are deployed. 
+apiVersion: lib.projectsveltos.io/v1beta1 
+kind: EventSource 
+metadata: 
+  name: collect-nginx-host-port
+spec: 
+  collectResources: true 
+  resourceSelectors: 
+  - group: "" 
+    version: "v1" 
+    kind: "Service" 
+    labelFilters: 
+    - key: app 
+      operation: Equal 
+      value: nginx
+--- 
+apiVersion: lib.projectsveltos.io/v1beta1 
+kind: EventTrigger 
+metadata: 
+  name: nginx-host-port
+spec: 
+  sourceClusterSelector: 
+    matchLabels: 
+      env: fv
+  eventSourceName: collect-nginx-host-port
+  oneForEvent: true 
+  policyRefs: 
+  - name: nginx-host-port
+    namespace: default 
+    kind: ConfigMap 
+    deploymentType: Local 
+--- 
+apiVersion: v1 
+kind: ConfigMap 
+metadata: 
+  name: nginx-host-port 
+  annotations: 
+    projectsveltos.io/template: ok 
+data:
+  service: |
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: {{ .Cluster.metadata.name}}-{{ .Resource.metadata.name }}
+      namespace: {{ .Cluster.metadata.namespace }}
+    spec:
+      type: ClusterIP
+      ports:
+      - protocol: TCP
+        port: 80
+        targetPort: 8080
+    ---
+    apiVersion: v1
+    kind: Endpoints
+    metadata:
+      name: {{ .Cluster.metadata.name}}-{{ .Resource.metadata.name }}
+      namespace: {{ .Cluster.metadata.namespace }}
+    subsets:
+    - addresses:
+      - ip: {{ (index .Resource.status.loadBalancer.ingress 0).ip }}
+      ports:
+      - port: {{ (index .Resource.spec.ports 0).targetPort }}
+    ---
+    apiVersion: gateway.networking.k8s.io/v1
+    kind: HTTPRoute
+    metadata:
+     name: {{ .Cluster.metadata.name}}-{{ .Resource.metadata.name }}
+     namespace: {{ .Cluster.metadata.namespace }}
+     annotations:
+       konghq.com/strip-path: 'true'
+    spec:
+      parentRefs:
+      - name: kong-gateway
+        namespace: kong
+      hostnames:
+      - worlds.com
+      rules:
+      - matches:
+        - path:
+            type: PathPrefix
+            value: /{{ .Cluster.metadata.name}}/{{ .Resource.metadata.name }}
+        backendRefs:
+        - name: {{ .Cluster.metadata.name}}-{{ .Resource.metadata.name }}
+          port: 80
+          kind: Service

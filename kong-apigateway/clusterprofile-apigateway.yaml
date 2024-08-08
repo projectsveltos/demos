@@ -1,0 +1,15 @@
+apiVersion: config.projectsveltos.io/v1beta1
+kind: ClusterProfile
+metadata:
+  name: apigateway
+spec:
+  clusterSelector:
+    matchLabels:      
+      type: mgmt
+  policyRefs:
+  - name: apigateway-crds 
+    namespace: default
+    kind: ConfigMap
+  - name: gateway  
+    namespace: default
+    kind: ConfigMap

@@ -1,0 +1,19 @@
+apiVersion: config.projectsveltos.io/v1beta1
+kind: ClusterProfile
+metadata:
+  name: production-nginx
+spec:
+  clusterSelector:
+    matchLabels:      
+      env: fv
+  templateResourceRefs:
+  - resource:
+      apiVersion: v1
+      kind: Service
+      name: kong-gateway-proxy
+      namespace: kong
+    identifier: KongGatewayProxy
+  policyRefs:
+  - name: production-nginx
+    namespace: default
+    kind: ConfigMap
