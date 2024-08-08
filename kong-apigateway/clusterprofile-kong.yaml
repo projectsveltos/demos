@@ -1,0 +1,18 @@
+apiVersion: config.projectsveltos.io/v1beta1
+kind: ClusterProfile
+metadata:
+  name: kong
+spec:
+  dependsOn:
+  - apigateway 
+  clusterSelector:
+    matchLabels:
+      type: mgmt
+  helmCharts:
+  - repositoryURL:    https://charts.konghq.com
+    repositoryName:   kong
+    chartName:        kong/ingress
+    chartVersion:     0.13.1
+    releaseName:      kong
+    releaseNamespace: kong
+    helmChartAction:  Install
