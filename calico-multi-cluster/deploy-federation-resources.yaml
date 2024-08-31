@@ -1,0 +1,13 @@
+apiVersion: config.projectsveltos.io/v1beta1
+kind: ClusterProfile
+metadata:
+  name: deploy-federation-resources
+spec:
+  clusterSelector:
+    matchLabels:      
+      cluster-federation: enabled
+  policyRefs:
+  - name: federation-resources
+    namespace: default
+    kind: ConfigMap
+
