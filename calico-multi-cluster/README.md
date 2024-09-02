@@ -14,7 +14,7 @@ Register your Kubernetes clusters with Sveltos:
 ```
 kubectl create ns demo
 sveltosctl register cluster --namespace=demo --cluster=cluster-a --kubeconfig=cluster-a-kubeconfig --labels=id=cluster-a,cluster-federation=enabled
-sveltosctl register cluster --namespace=demo --cluster=cluster-a --kubeconfig=cluster-b-kubeconfig --labels=id=cluster-b,cluster-federation=enabled
+sveltosctl register cluster --namespace=demo --cluster=cluster-b --kubeconfig=cluster-b-kubeconfig --labels=id=cluster-b,cluster-federation=enabled
 ```
 
 Verify your clusters were successfully registered:
@@ -34,7 +34,21 @@ Create a ConfigMap per cluster containing:
 - server IP:Port
 - namespace
 
-For instance
+For __cluster-a__:
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-a
+  namespace: demo
+data:
+  certauthdata: <CLUSTER-A CERTIFICATE AUTHORITY DATA>
+  server: https://<CLUSTER-A IP>:<PORT>
+  namespace: demo
+```
+
+For __cluster-b__:
 
 ```yaml
 apiVersion: v1
@@ -43,10 +57,11 @@ metadata:
   name: cluster-b
   namespace: demo
 data:
-  certauthdata: <CERTIFICATE AUTHORITY DATA>
-  server: https://<IP>:<PORT>
+  certauthdata: <CLUSTER-B CERTIFICATE AUTHORITY DATA>
+  server: https://<CLUSTER-B IP>:<PORT>
   namespace: demo
 ```
+
 
 ## Step 3: Deploy ServiceAccount to Both Clusters
 
@@ -60,7 +75,7 @@ To enable authentication with remote clusters, we'll leverage a `ClusterProfile`
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/projectsveltos/demos/main/calico-multi-cluster/federation-resources.yaml
-kubectl apply -f https://raw.githubusercontent.com/projectsveltos/demos/main/calico-multi-cluster/deploy-fedeation-resources.yaml
+kubectl apply -f https://raw.githubusercontent.com/projectsveltos/demos/main/calico-multi-cluster/deploy-federation-resources.yaml
 ```
 
 Verify all resources are deployed:
