@@ -1,0 +1,165 @@
+apiVersion: lib.projectsveltos.io/v1beta1
+kind: EventSource
+metadata:
+  name: tigera-federation-service
+spec:
+  collectResources: true
+  resourceSelectors:
+  - group: ""
+    version: "v1"
+    kind: "Secret"
+    namespace: kube-system
+    name: tigera-federation-remote-cluster
+---
+apiVersion: lib.projectsveltos.io/v1beta1
+kind: EventTrigger
+metadata:
+  name: tigera-federation-service-cluster-a
+spec:
+  sourceClusterSelector:
+    matchLabels:
+      id: cluster-a
+  destinationClusterSelector:
+    matchLabels:
+      id: cluster-b
+  eventSourceName: tigera-federation-service
+  oneForEvent: true
+  configMapGenerator:
+  - name: calico-sa-token
+    namespace: default
+    nameFormat: "{{ .Cluster.metadata.name }}-token"
+  templateResourceRefs:
+  - resource:
+      apiVersion: v1
+      kind: ConfigMap
+      name: "{{ .Cluster.metadata.name }}-token"
+      namespace: projectsveltos
+    identifier: ConfigDataToken
+  - resource:
+      apiVersion: v1
+      kind: ConfigMap
+      name: "{{ .Cluster.metadata.name }}"
+    identifier: ConfigData
+  policyRefs:
+  - name: calico-remote-cluster-config
+    namespace: default
+    kind: ConfigMap
+---
+apiVersion: lib.projectsveltos.io/v1beta1
+kind: EventTrigger
+metadata:
+  name: tigera-federation-service-cluster-b
+spec:
+  sourceClusterSelector:
+    matchLabels:
+      id: cluster-b
+  destinationClusterSelector:
+    matchLabels:
+      id: cluster-a
+  eventSourceName: tigera-federation-service
+  oneForEvent: true
+  configMapGenerator:
+  - name: calico-sa-token
+    namespace: default
+    nameFormat: "{{ .Cluster.metadata.name }}-token"
+  templateResourceRefs:
+  - resource:
+      apiVersion: v1
+      kind: ConfigMap
+      name: "{{ .Cluster.metadata.name }}-token"
+      namespace: projectsveltos
+    identifier: ConfigDataToken
+  - resource:
+      apiVersion: v1
+      kind: ConfigMap
+      name: "{{ .Cluster.metadata.name }}"
+    identifier: ConfigData
+  policyRefs:
+  - name: calico-remote-cluster-config
+    namespace: default
+    kind: ConfigMap
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: calico-sa-token
+  namespace: default
+  annotations:
+    projectsveltos.io/instantiate: "ok"
+data:
+    token: "{{ .Resource.data.token }}"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: calico-remote-cluster-config 
+  namespace: default
+  annotations:
+    projectsveltos.io/template: "ok"
+data:
+  secrets.yaml: |
+    {{ $certauthdata := ((getResource "ConfigData")).data.certauthdata }}
+    {{ $server := (( getResource "ConfigData")).data.server }}
+    {{ $token := ((getResource "ConfigDataToken")).data.token }}
+    {{ $config := `     apiVersion: v1
+      kind: Config
+      users:
+        - name: tigera-federation-remote-cluster
+          user:
+            token: %s
+      clusters:
+        - name: tigera-federation-remote-cluster
+          cluster:
+            certificate-authority-data: %s
+            server: %s
+      contexts:
+        - name: tigera-federation-remote-cluster-ctx
+          context:
+            cluster: tigera-federation-remote-cluster
+            user: tigera-federation-remote-cluster
+      current-context: tigera-federation-remote-cluster-ctx `  }}
+    ---
+    apiVersion: v1
+    data:
+      datastoreType: {{ "kubernetes" | b64enc }}
+      kubeconfig: {{ printf $config $token $certauthdata $server | b64enc }}
+    kind: Secret
+    metadata:
+      name: remote-cluster-secret-name
+      namespace: {{ ((getResource "ConfigData")).data.namespace }}
+  rbac.yaml: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      name: remote-cluster-secret-access
+      namespace: {{ ((getResource "ConfigData")).data.namespace }}
+    rules:
+    - apiGroups: [""]
+      resources: ["secrets"]
+      verbs: ["watch", "list", "get"]
+    ---
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      name: remote-cluster-secret-access
+      namespace: {{ ((getResource "ConfigData")).data.namespace }}
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: remote-cluster-secret-access
+    subjects:
+    - kind: ServiceAccount
+      name: calico-typha
+      namespace: calico-system
+  remoteclusterconfiguration.yaml: |
+    apiVersion: projectcalico.org/v3
+    kind: RemoteClusterConfiguration
+    metadata:
+      name: other-cluster
+    spec:
+      clusterAccessSecret:
+        name: remote-cluster-secret-name
+        namespace: {{ ((getResource "ConfigData")).data.namespace }}
+        kind: Secret
+      syncOptions:
+        overlayRoutingMode: Enabled
