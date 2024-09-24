@@ -1,0 +1,22 @@
+apiVersion: v1
+data:
+  process-result.yaml: "apiVersion: v1\nkind: ServiceAccount\nmetadata:\n  name: kube-bench-sa\n
+    \ namespace: default\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n
+    \ name: kube-bench-cluster-role\nrules:\n- apiGroups: [\"\"]\n  resources: [\"configmaps\"]\n
+    \ verbs: [\"create\"]\n- apiGroups: [\"\"]\n  resources: [\"pods\"]\n  verbs:
+    [\"get\", \"list\"]\n- apiGroups: [\"\"]\n  verbs: [\"get\", \"list\", \"watch\"]\n
+    \ resources: [ \"pods/log\" ]\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind:
+    ClusterRoleBinding\nmetadata:\n  name: kube-bench-cluster-role-binding\nsubjects:\n-
+    kind: ServiceAccount\n  name: kube-bench-sa\n  namespace: default\nroleRef:\n
+    \ apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: kube-bench-cluster-role\n---\napiVersion:
+    batch/v1\nkind: Job\nmetadata:\n  name: post-process-kube-bench-failures \n  namespace:
+    default\nspec:\n  template:\n    metadata:\n      name: post-process-kube-bench-failures\n
+    \   spec:\n      serviceAccount: kube-bench-sa\n      restartPolicy: Never\n      containers:\n
+    \     - name: kube-bench-failures\n        image: bitnami/kubectl:latest \n        command:
+    [\"sh\", \"-c\"]\n        args: [\"podname=$(kubectl get pod -n kube-bench -o
+    name); kubectl logs $podname -n kube-bench | grep -F '[FAIL]' > /tmp/manager_logs.txt;
+    kubectl create configmap -n kube-bench kube-bench-failures --from-file=failures=/tmp/manager_logs.txt\"]\n"
+kind: ConfigMap
+metadata:
+  name: post-process-kube-bench-result
+  namespace: default

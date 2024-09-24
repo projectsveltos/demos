@@ -1,0 +1,12 @@
+apiVersion: config.projectsveltos.io/v1beta1
+kind: ClusterProfile
+metadata:
+  name: deploy-kube-bench
+spec:
+  clusterSelector:
+    matchLabels:
+      env: production
+  policyRefs:
+  - name: kube-bench
+    namespace: default
+    kind: ConfigMap
