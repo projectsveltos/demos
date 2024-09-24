@@ -1,0 +1,89 @@
+# This EventSource detects when kube-bench is completed
+apiVersion: lib.projectsveltos.io/v1beta1
+kind: EventSource
+metadata:
+  name: kube-bench-job
+spec:
+  collectResources: false
+  resourceSelectors:
+  - group: "batch"
+    version: "v1"
+    kind: "Job"
+    name: kube-bench
+    namespace: kube-bench
+    evaluate: |
+      function evaluate()
+        hs = {}
+        hs.matching = false
+        if obj.status ~= nil then
+          if obj.status.completionTime ~= nil and obj.status.succeeded > 0 then
+            hs.matching = true
+          end
+        end
+        return hs
+      end
+---
+# This EventTrigger uses above EventSource to detect when kube-bench job is completed.
+# When such condition is detected, another job to post-process kube-bench result is deployed to all managed cluster
+apiVersion: lib.projectsveltos.io/v1beta1
+kind: EventTrigger
+metadata:
+  name: kube-bench-job-completeted
+spec:
+  sourceClusterSelector:
+    matchLabels:
+      env: production
+  eventSourceName: kube-bench-job
+  oneForEvent: true
+  policyRefs:
+  - name: post-process-kube-bench-result
+    namespace: default
+    kind: ConfigMap  
+---
+apiVersion: lib.projectsveltos.io/v1beta1
+kind: HealthCheck
+metadata:
+  name: kube-bench-failures
+spec:
+  collectResources: true
+  resourceSelectors:
+  - group: ""
+    version: "v1"
+    kind: "ConfigMap"
+    name: kube-bench-failures
+    namespace: kube-bench
+  evaluateHealth: |
+    function evaluate()
+      local statuses = {}
+
+      for _,resource in ipairs(resources) do
+        status = "Degraded"
+        table.insert(statuses, {resource=resource, status = status, message = resource.data["failures"]})
+      end
+
+      local hs = {}
+      if #statuses > 0 then
+        hs.resources = statuses 
+      end
+      return hs
+    end
+---
+apiVersion: lib.projectsveltos.io/v1beta1
+kind: ClusterHealthCheck
+metadata:
+  name: kube-bench-failures
+spec:
+  clusterSelector:
+    matchLabels:
+      env: production
+  livenessChecks:
+  - name: kube-bench-failures
+    type: HealthCheck
+    livenessSourceRef:
+      kind: HealthCheck
+      apiVersion: lib.projectsveltos.io/v1beta1
+      name: kube-bench-failures
+  notifications:
+  - name: event
+    type: KubernetesEvent
+
