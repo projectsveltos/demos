@@ -81,6 +81,8 @@ sveltosctl show addons
 +------------------------------------------+-----------------+-------------------------+-------------------------+---------+--------------------------------+-----------------------------------------------+
 ```
 
+![Managed services with Sveltos](managed-services.gif)
+
 Once Postgres is deployed we need following information:
 
 1. credentials (to connect to Postgres)
