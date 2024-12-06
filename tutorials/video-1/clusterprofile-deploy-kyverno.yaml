@@ -1,0 +1,24 @@
+apiVersion: config.projectsveltos.io/v1beta1
+kind: ClusterProfile
+metadata:
+  name: deploy-kyverno
+spec:
+  clusterSelector:
+    matchLabels:
+      env: production
+  syncMode: Continuous 
+  helmCharts:
+  - repositoryURL:    https://kyverno.github.io/kyverno/
+    repositoryName:   kyverno
+    chartName:        kyverno/kyverno
+    chartVersion:     v3.2.6
+    releaseName:      kyverno-latest
+    releaseNamespace: kyverno
+    helmChartAction:  Install
+    values: |
+      admissionController:
+        replicas: 3
+      backgroundController:
+        replicas: 1
+      reportsController:
+        replicas: 1
