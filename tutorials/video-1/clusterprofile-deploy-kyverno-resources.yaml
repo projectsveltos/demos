@@ -1,0 +1,17 @@
+apiVersion: config.projectsveltos.io/v1beta1
+kind: ClusterProfile
+metadata:
+  name: deploy-kyverno-policies
+spec:
+  dependsOn:
+  - deploy-kyverno
+  clusterSelector:
+    matchLabels:
+      env: production
+  policyRefs:
+  - name: disallow-latest-tag
+    namespace: default
+    kind: ConfigMap
+  - name: disallow-empty-ingress-host
+    namespace: default
+    kind: ConfigMap
